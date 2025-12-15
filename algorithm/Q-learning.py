@@ -134,21 +134,21 @@ def train():
     n_episodes = 1000 ## 에피소드 수
     rewards_per_episode = [] ## 에피소드별 총 보상 기록 리스트
  
-    for episode in (range(n_episodes)): ## 에피소드 반복
-        state = env.reset() ## 환경 초기화
-        total_reward = 0 ## 총 보상 초기화
-        done = False ## 종료 여부 초기화
-        step = 0 ## 스텝 수 초기화
-        max_step = 100 ## 최대 스텝 수 설정
+    for episode in (range(n_episodes)): 
+        state = env.reset() 
+        total_reward = 0 
+        done = False 
+        step = 0 
+        max_step = 100 
 
-        while not done and step < max_step: ## 에피소드 진행
-            action = agent.get_action(state) ## 행동 선택
-            next_state, reward, done = env.step(action) ## 환경에서 한 스텝 진행
+        while not done and step < max_step: 
+            action = agent.get_action(state)
+            next_state, reward, done = env.step(action) 
             agent.update(state, action, reward, next_state, done) ## Q-테이블 업데이트
 
-            state = next_state ## 상태 업데이트
-            total_reward += reward ## 총 보상 누적
-            step += 1 ## 스텝 수 증가
+            state = next_state 
+            total_reward += reward 
+            step += 1 
 
         rewards_per_episode.append(total_reward) ## 에피소드별 총 보상 기록
 
@@ -185,7 +185,7 @@ def plot_training_results(rewards_per_episode):
     """
     평균 보상을 시각화
     """
-    # 100 에피소드마다 평균 계산
+    # 10 에피소드마다 평균 계산
     window_size = 10
     episodes = []
     avg_rewards = []
