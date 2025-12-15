@@ -1,6 +1,10 @@
-import tqdm
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+
+# 한글 폰트 설정 (macOS의 경우)
+plt.rcParams['font.family'] = ['AppleGothic']  # macOS 기본 한글 폰트
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 
 """
 Q-learning algorithm 예제입니다. 
@@ -54,11 +58,11 @@ class SimpleGridworld:
         if action == 0: ## 위쪽 
             row = max(0, row - 1)
         elif action == 1: ## 아래쪽
-            row = min(self.size - 1, row + 1)
+            row = min(self.size - 1, row + 1) ## 여기서 size-1인 이유: 인덱스가 0부터 시작하기 때문 row+1이 size를 초과하지 않도록 함
         elif action == 2: ## 왼쪽
             col = max(0, col - 1)
         elif action == 3: ## 오른쪽
-            col = min(self.size - 1, col + 1)
+            col = min(self.size - 1, col + 1) ## 여기서 size-1인 이유: 인덱스가 0부터 시작하기 때문 col+1이 size를 초과하지 않도록 함
         
         self.state = (row, col) # 상태 업데이트 / 격자판 위에서 에이전트가 현재 위치한 좌표를 나타냄
         ## 보상설정
@@ -130,7 +134,7 @@ def train():
     n_episodes = 1000 ## 에피소드 수
     rewards_per_episode = [] ## 에피소드별 총 보상 기록 리스트
  
-    for episode in tqdm.tqdm(range(n_episodes)): ## 에피소드 반복
+    for episode in (range(n_episodes)): ## 에피소드 반복
         state = env.reset() ## 환경 초기화
         total_reward = 0 ## 총 보상 초기화
         done = False ## 종료 여부 초기화
@@ -153,7 +157,6 @@ def train():
             avg_reward = np.mean(rewards_per_episode[-100:])
             print(f"Episode {episode + 1}, Average Reward: {avg_reward:.2f}")
     
-        
     ## 최종 Q-테이블 출력
     print("Final Q-Table:")
     print(agent.q_table)
@@ -175,6 +178,52 @@ def train():
     print("경로: ", path)
     print(f'목표 도달: {env.state == env.goal}')
 
+    # 학습 결과 시각화
+    plot_training_results(rewards_per_episode)
+
+def plot_training_results(rewards_per_episode):
+    """
+    평균 보상을 시각화
+    """
+    # 100 에피소드마다 평균 계산
+    window_size = 10
+    episodes = []
+    avg_rewards = []
+    
+    for i in range(window_size, len(rewards_per_episode) + 1, window_size):
+        episodes.append(i)
+        avg_rewards.append(np.mean(rewards_per_episode[i-window_size:i]))
+    
+    # 마지막 구간이 100개 미만인 경우도 포함
+    if len(rewards_per_episode) % window_size != 0:
+        remaining_start = len(episodes) * window_size
+        episodes.append(len(rewards_per_episode))
+        avg_rewards.append(np.mean(rewards_per_episode[remaining_start:]))
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(episodes, avg_rewards, 'o-', color='blue', linewidth=2, markersize=8)
+    plt.title('학습 진행에 따른 평균 보상', fontsize=14, fontweight='bold')
+    plt.xlabel('에피소드')
+    plt.ylabel('평균 보상 (10 에피소드 단위)')
+    plt.grid(True, alpha=0.3)
+    plt.show()
+    
+    # 학습 통계 출력
+    print(f"\n=== 학습 결과 통계 ===")
+    print(f"총 에피소드 수: {len(rewards_per_episode)}")
+    print(f"평균 보상: {np.mean(rewards_per_episode):.3f}")
+    print(f"최대 보상: {np.max(rewards_per_episode):.3f}")
+    print(f"최소 보상: {np.min(rewards_per_episode):.3f}")
+    print(f"최종 100 에피소드 평균: {np.mean(rewards_per_episode[-100:]):.3f}")
+    
+    # 학습 개선 분석
+    if len(rewards_per_episode) >= 200:
+        first_half = np.mean(rewards_per_episode[:len(rewards_per_episode)//2])
+        second_half = np.mean(rewards_per_episode[len(rewards_per_episode)//2:])
+        improvement = second_half - first_half
+        print(f"전반부 평균: {first_half:.3f}")
+        print(f"후반부 평균: {second_half:.3f}")
+        print(f"개선도: {improvement:.3f} ({'향상' if improvement > 0 else '하락'})")
+
 if __name__ == "__main__":
     train()
-    
